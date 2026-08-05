@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PROFESSOR | Pairing Code</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0f;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      max-width: 500px;
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      padding: 36px 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #8b5cf6, #6366f1, transparent);
+    }
+    .header { text-align: center; margin-bottom: 28px; }
+    .logo {
+      width: 72px; height: 72px;
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; margin: 0 auto 12px;
+      box-shadow: 0 8px 30px rgba(99,102,241,0.3);
+    }
+    .title {
+      font-size: 28px; font-weight: 900;
+      background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .subtitle { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 4px; }
+
+    /* Server Box */
+    .server-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      margin-bottom: 18px;
+      transition: 0.3s;
+    }
+    .server-box:hover { border-color: rgba(139,92,246,0.3); }
+    .server-name { font-weight: 600; font-size: 14px; }
+    .server-stats { font-size: 11px; color: rgba(255,255,255,0.35); }
+    .server-stats i { color: #34d399; font-size: 8px; }
+    .select-btn {
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.2);
+      color: #c4b5fd;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .select-btn:hover { background: rgba(139,92,246,0.25); }
+
+    /* Dropdown */
+    .server-dropdown {
+      display: none;
+      background: rgba(15,15,25,0.95);
+      border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .server-dropdown.show { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    .server-option {
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      transition: 0.2s;
+      border: 1px solid transparent;
+    }
+    .server-option:hover { background: rgba(139,92,246,0.08); }
+    .server-option.selected { background: rgba(139,92,246,0.12); border-color: #8b5cf6; }
+    .server-option-badge { font-size: 10px; color: #34d399; background: rgba(52,211,153,0.12); padding: 2px 10px; border-radius: 20px; }
+
+    /* Info Box */
+    .info-box {
+      background: rgba(99,102,241,0.06);
+      border: 1px solid rgba(99,102,241,0.1);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .info-box i { color: #8b5cf6; font-size: 18px; }
+    .info-box p { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+    .info-box strong { display: block; font-size: 13px; color: #fff; margin-bottom: 2px; }
+
+    /* Input */
+    .input-group { margin-bottom: 16px; }
+    .input-group label { font-size: 13px; color: rgba(255,255,255,0.6); display: block; margin-bottom: 6px; font-weight: 500; }
+    .input-group input {
+      width: 100%;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      color: #fff;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+    .input-group input:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 4px rgba(139,92,246,0.06); }
+    .input-group input::placeholder { color: rgba(255,255,255,0.2); }
+    .hint { font-size: 11px; color: rgba(255,255,255,0.2); margin-top: 4px; }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-generate {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: #fff;
+      box-shadow: 0 8px 28px rgba(99,102,241,0.25);
+    }
+    .btn-generate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(99,102,241,0.35); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-copy {
+      background: rgba(255,255,255,0.05);
+      color: #c4b5fd;
+      border: 1px solid rgba(255,255,255,0.06);
+      display: none;
+      margin-top: 10px;
+    }
+    .btn-copy:hover { background: rgba(255,255,255,0.08); }
+
+    /* Loading */
+    .loading { display: none; text-align: center; padding: 16px 0; }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(139,92,246,0.1); border-top-color: #8b5cf6; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 12px; color: rgba(255,255,255,0.3); }
+
+    /* Code Box */
+    .code-box {
+      background: rgba(0,0,0,0.3);
+      border: 1.5px solid rgba(255,255,255,0.04);
+      border-radius: 14px;
+      padding: 18px;
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 14px;
+      transition: 0.3s;
+    }
+    .code-box.has-code { border-color: rgba(52,211,153,0.3); background: rgba(52,211,153,0.04); }
+    .code-box.has-error { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.04); }
+    .code-placeholder { color: rgba(255,255,255,0.15); font-size: 13px; }
+    .code-value { font-size: 26px; font-weight: 700; letter-spacing: 4px; color: #34d399; display: flex; align-items: center; gap: 12px; }
+    .error-value { color: #f87171; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+
+    .footer { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04); font-size: 11px; color: rgba(255,255,255,0.12); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120px);
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      color: #fff; padding: 12px 24px; border-radius: 50px;
+      font-weight: 500; font-size: 13px;
+      transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 1000; opacity: 0;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+    @media (max-width: 480px) { .card { padding: 24px 16px; } .code-value { font-size: 22px; } }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <div class="logo"><i class="fas fa-graduation-cap"></i></div>
+    <h1 class="title">PROFESSOR</h1>
+    <p class="subtitle">Premium Pairing Code Generator</p>
+  </div>
+
+  <!-- Server Selection -->
+  <div class="server-box" id="serverBox">
+    <div>
+      <div class="server-name" id="currentServer">Select Server</div>
+      <div class="server-stats"><i class="fas fa-circle"></i> Active: -- &nbsp;|&nbsp; <i class="fas fa-users"></i> Limit: --/50</div>
+    </div>
+    <div class="select-btn" id="toggleServer">Select</div>
+  </div>
+
+  <div class="server-dropdown" id="serverDropdown">
+    <div style="text-align:center;font-size:13px;color:#c4b5fd;font-weight:600;margin-bottom:12px;">☠️ Select a Server</div>
+    <div id="serverGrid"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-box">
+    <i class="fas fa-gem"></i>
+    <div><strong>Premium Setup</strong><p>Select a server, enter your WhatsApp number to instantly generate a pairing code. Powered by Legend-MD.</p></div>
+  </div>
+
+  <!-- Form -->
+  <form id="pairForm">
+    <div class="input-group">
+      <label>WhatsApp Number</label>
+      <input type="tel" id="phoneInput" placeholder="923xxxxxxxxx" required />
+      <div class="hint"><i class="fas fa-lightbulb"></i> Include country code (e.g., 92 for Pakistan)</div>
+    </div>
+
+    <button type="submit" class="btn btn-generate" id="generateBtn" disabled>
+      <i class="fas fa-key"></i> Generate Pair Code
+    </button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p class="loading-text">Requesting code from Telegram bot...</p>
+    </div>
+
+    <div class="code-box" id="codeBox">
+      <div class="code-placeholder">Your pairing code will appear here</div>
+    </div>
+
+    <button type="button" class="btn btn-copy" id="copyBtn">
+      <i class="fas fa-copy"></i> Copy Code
+    </button>
+  </form>
+
+  <div class="footer"><i class="fas fa-crown"></i> PROFESSOR &bull; Premium</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span>Copied!</span></div>
+
+<script>
+// ============================================
+// PROFESSOR - Frontend JavaScript
+// ============================================
+
+const API_BASE = window.location.origin;
+let selectedServer = null;
+let currentCode = null;
+let serverList = [];
+
+// DOM Elements
+const phoneInput = document.getElementById('phoneInput');
+const generateBtn = document.getElementById('generateBtn');
+const loading = document.getElementById('loading');
+const codeBox = document.getElementById('codeBox');
+const copyBtn = document.getElementById('copyBtn');
+const form = document.getElementById('pairForm');
+const serverBox = document.getElementById('serverBox');
+const serverDropdown = document.getElementById('serverDropdown');
+const serverGrid = document.getElementById('serverGrid');
+const currentServer = document.getElementById('currentServer');
+const toggleServer = document.getElementById('toggleServer');
+const toast = document.getElementById('toast');
+
+// Toast
+function showToast(msg, isError = false) {
+  toast.querySelector('span').textContent = msg;
+  toast.className = `toast ${isError ? 'error' : ''} show`;
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// Load Servers
+async function loadServers() {
+  try {
+    const res = await axios.get(`${API_BASE}/api/servers`);
+    if (res.data.success) {
+      serverList = res.data.servers;
+    }
+  } catch (e) {
+    serverList = [];
+    for (let i = 1; i <= 20; i++) {
+      serverList.push({ id: `server${i}`, name: `Server ${i}`, active: Math.floor(Math.random() * 8) + 2, limit: 50 });
+    }
+  }
+  renderServers();
+}
+
+// Render Servers
+function renderServers() {
+  serverGrid.innerHTML = '';
+  serverList.forEach(s => {
+    const div = document.createElement('div');
+    div.className = `server-option${selectedServer === s.id ? ' selected' : ''}`;
+    div.dataset.server = s.id;
+    div.innerHTML = `<span>${s.name}</span><span class="server-option-badge">${s.active || 0} active</span>`;
+    div.onclick = () => selectServer(s.id);
+    serverGrid.appendChild(div);
+  });
+}
+
+// Select Server
+async function selectServer(id) {
+  selectedServer = id;
+  document.querySelectorAll('.server-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.server === id);
+  });
+  await updateStatus(id);
+  serverDropdown.classList.remove('show');
+  generateBtn.disabled = false;
+}
+
+// Update Status
+async function updateStatus(id) {
+  try {
+    const res = await axios.get(`${API_BASE}/api/status/${id}`);
+    const data = res.data;
+    const server = serverList.find(s => s.id === id);
+    currentServer.textContent = server ? server.name : id;
+    document.querySelector('.server-stats').innerHTML =
+      `<i class="fas fa-circle" style="color:#34d399;"></i> Active: ${data.count || 0} &nbsp;|&nbsp; <i class="fas fa-users"></i> Limit: ${data.count || 0}/${data.limit || 50}`;
+  } catch (e) {
+    const server = serverList.find(s => s.id === id);
+    currentServer.textContent = server ? server.name : id;
+  }
+}
+
+// Toggle Dropdown
+toggleServer.onclick = () => {
+  serverDropdown.classList.toggle('show');
+};
+
+// Generate Code
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  if (!selectedServer) {
+    showToast('Please select a server first!', true);
+    serverDropdown.classList.add('show');
+    return;
+  }
+  const phone = phoneInput.value.trim();
+  if (!phone) { showToast('Phone number is required!', true); return; }
+  if (phone.replace(/[^0-9]/g, '').length < 10) { showToast('Invalid phone number!', true); return; }
+
+  generateBtn.disabled = true;
+  generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  loading.style.display = 'block';
+  codeBox.className = 'code-box';
+  codeBox.innerHTML = '<div class="code-placeholder">Generating...</div>';
+  copyBtn.style.display = 'none';
+
+  try {
+    const res = await axios.get(`${API_BASE}/api/code`, {
+      params: { server: selectedServer, number: phone.replace(/[^0-9]/g, '') }
+    });
+    if (res.data.success && res.data.code) {
+      currentCode = res.data.code;
+      codeBox.className = 'code-box has-code';
+      codeBox.innerHTML = `<div class="code-value"><i class="fas fa-check-circle"></i><span>${res.data.code}</span></div>`;
+      copyBtn.style.display = 'flex';
+      showToast('Pair code generated successfully!');
+      await updateStatus(selectedServer);
+    } else {
+      throw new Error(res.data.error || 'Failed');
+    }
+  } catch (err) {
+    codeBox.className = 'code-box has-error';
+    codeBox.innerHTML = `<div class="error-value"><i class="fas fa-exclamation-circle"></i><span>${err.response?.data?.error || err.message || 'Server error'}</span></div>`;
+    showToast('Error generating code', true);
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.innerHTML = '<i class="fas fa-key"></i> Generate Pair Code';
+    loading.style.display = 'none';
+  }
+};
+
+// Copy
+copyBtn.onclick = async () => {
+  if (!currentCode) return;
+  try {
+    await navigator.clipboard.writeText(currentCode);
+    copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    copyBtn.disabled = true;
+    setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Code'; copyBtn.disabled = false; }, 2000);
+    showToast('Copied to clipboard!');
+  } catch (e) { showToast('Failed to copy', true); }
+};
+
+// Init
+loadServers();
+</script>
+
+</body>
+</html>
